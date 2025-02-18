@@ -31,7 +31,8 @@ RUN apt-get -y update && \
   pkg-config \
   libboost-system-dev \
   libboost-python-dev \
-  libboost-filesystem-dev
+  libboost-filesystem-dev \
+  mold
 RUN useradd -m -s /bin/bash spechls-user && echo "spechls-user:spechls" | chpasswd && \
   adduser spechls-user sudo
 USER spechls-user
