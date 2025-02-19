@@ -26,3 +26,7 @@ sudo chown -R spechls-user .
 ```
 You can then connect to the running instance using Dev Containers. See the top-level README file for more information.
 
+**NOTE:** By default, the repositories will have their `HEAD` pointing to a specific commit. To start developing in, e.g., the `spechls-circt` directory, start by checking out the latest revision using
+```sh
+git checkout main
+```
