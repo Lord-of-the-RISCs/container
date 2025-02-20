@@ -39,7 +39,7 @@ docker build --tag 'spechls-dev' .
 ```
 This operation may take a long time, since it will build LLVM, MLIR, and all of SpecHLS' required dependencies.
 
-**WARNING:** The SpecHLS development image requires around 25 GiB of free disk space. Make sure you have enough space available before attempting to build the image.
+**WARNING:** The SpecHLS development image requires around 60 GiB of free disk space. Make sure you have enough space available before attempting to build the image.
 
 ## Running the container
 
