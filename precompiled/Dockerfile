@@ -35,6 +35,6 @@ RUN apt-get -y update && \
 RUN useradd -m -s /bin/bash spechls-user && echo "spechls-user:spechls" | chpasswd && \
   adduser spechls-user sudo
 USER spechls-user
-ENV SPECHLS_ROOT /home/spechls-user/spechls
+ENV SPECHLS_ROOT=/home/spechls-user/spechls
 RUN touch /home/spechls-user/.sudo_as_admin_successful && mkdir -p "$SPECHLS_ROOT" && git config --global --add safe.directory "$SPECHLS_ROOT"
 WORKDIR ${SPECHLS_ROOT}

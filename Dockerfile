@@ -37,9 +37,9 @@ RUN useradd -m -s /bin/bash spechls-user && echo "spechls-user:spechls" | chpass
   adduser spechls-user sudo
 USER spechls-user
 RUN touch /home/spechls-user/.sudo_as_admin_successful
-ENV PREFIX /home/spechls-user/prefix
+ENV PREFIX=/home/spechls-user/prefix
 RUN mkdir -p "$PREFIX"
-ENV SPECHLS_ROOT /home/spechls-user/spechls
+ENV SPECHLS_ROOT=/home/spechls-user/spechls
 RUN mkdir -p "$SPECHLS_ROOT" && git clone --progress --verbose https://github.com/Lord-of-the-RISCs/setup.git "$SPECHLS_ROOT"
 WORKDIR ${SPECHLS_ROOT}
 RUN bash setup.sh
