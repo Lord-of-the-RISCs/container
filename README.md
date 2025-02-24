@@ -135,3 +135,10 @@ sudo systemctl start docker
 
 Make sure you are using the Microsoft-provided version of VSCode. Open-source implementations such as VSCodium replace the official Marketplace with an alternative version that doesn't include all available extensions.
 
+### Cannot push changes to Github
+
+Since January 2025, Github does not allow connections to their services using regular passwords. Instead, you must use either a personal access token, or use an SSH key. We recommend the latter. To switch to SSH in the repository you are working in, simply update the URL of the `origin` remote. For example, to switch `spechls-circt` from HTTPS to SSH, you can use the following command inside the `spechls-circt` directory.
+```sh
+git remote set-url origin git@github.com:Lord-of-the-RISCs/spechls-circt.git
+```
+You should now be able to push your changes, assuming you have a valid SSH key on your host associated with your Github account. For more information, see [this link](https://docs.github.com/en/authentication/connecting-to-github-with-ssh).
