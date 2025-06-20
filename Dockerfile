@@ -42,4 +42,4 @@ RUN mkdir -p "$PREFIX"
 ENV SPECHLS_ROOT=/home/spechls-user/spechls
 RUN mkdir -p "$SPECHLS_ROOT" && git clone --progress --verbose https://github.com/Lord-of-the-RISCs/setup.git "$SPECHLS_ROOT"
 WORKDIR ${SPECHLS_ROOT}
-RUN bash setup.sh
+RUN bash setup.sh -i
