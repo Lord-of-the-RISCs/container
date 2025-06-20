@@ -2,6 +2,8 @@
 
 This repository contains Docker configuration files for SpecHLS development. These containers can be used to setup a full development environment on any machine, that can be accessed through, e.g., [Visual Studio Code Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers).
 
+The `precompiled` directory contains configuration for a development environment that relies on precompiled versions of LLVM, MLIR, and CIRCT. The `demo` directory contains configuration for an image suitable for demonstration purposes (i.e., with no debug information, faster binaries, etc.).
+
 ## Docker setup
 
 ### Linux
