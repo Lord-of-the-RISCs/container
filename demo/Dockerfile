@@ -62,12 +62,12 @@ RUN mkdir -p "$PREFIX"
 ENV SPECHLS_ROOT=/home/spechls-user/spechls
 RUN mkdir -p "$SPECHLS_ROOT" && git clone --progress --verbose https://github.com/Lord-of-the-RISCs/setup.git "$SPECHLS_ROOT"
 WORKDIR ${SPECHLS_ROOT}
-RUN bash setup.sh -irR
+RUN bash setup.sh -irRc
 # Setup riscv-gnu-toolchain
 WORKDIR /home/spechls-user
 RUN git clone https://github.com/riscv-collab/riscv-gnu-toolchain.git
 WORKDIR /home/spechls-user/riscv-gnu-toolchain
-RUN ./configure --prefix="$PREFIX" --with-arch=rv32i --with-abi=ilp32 && make -j$(nproc) && make install
+RUN ./configure --prefix="$PREFIX" --with-arch=rv32i --with-abi=ilp32 && make -j$(nproc) && make install && make clean
 # Get embench-iot
 WORKDIR /home/spechls-user
 RUN git clone --branch embench-1.0 https://github.com/embench/embench-iot.git
