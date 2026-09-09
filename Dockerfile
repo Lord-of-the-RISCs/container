@@ -64,13 +64,4 @@ ENV SPECHLS_ROOT=/home/spechls-user/spechls
 RUN mkdir -p "$SPECHLS_ROOT" && git clone --progress --verbose https://github.com/Lord-of-the-RISCs/setup.git "$SPECHLS_ROOT"
 WORKDIR ${SPECHLS_ROOT}
 RUN bash setup.sh -i
-# Setup riscv-gnu-toolchain
-WORKDIR /home/spechls-user
-RUN git clone https://github.com/riscv-collab/riscv-gnu-toolchain.git
-WORKDIR /home/spechls-user/riscv-gnu-toolchain
-RUN ./configure --prefix="$PREFIX" --with-arch=rv32i --with-abi=ilp32 && make -j$(nproc) && make install
-# Get embench-iot
-WORKDIR /home/spechls-user
-RUN git clone --branch embench-1.0 https://github.com/embench/embench-iot.git
-WORKDIR /home/spechls-user/embench-iot
 RUN ./build_all.py --arch riscv32 --chip generic --board ri5cyverilator --cc riscv32-unknown-elf-gcc --cflags="-c -O2 -ffunction-sections -march=rv32i_zicsr -mabi=ilp32" --ldflags="-Wl,-gc-sections" --user-libs="-lm"
