@@ -64,4 +64,3 @@ ENV SPECHLS_ROOT=/home/spechls-user/spechls
 RUN mkdir -p "$SPECHLS_ROOT" && git clone --progress --verbose https://github.com/Lord-of-the-RISCs/setup.git "$SPECHLS_ROOT"
 WORKDIR ${SPECHLS_ROOT}
 RUN bash setup.sh -i
-RUN ./build_all.py --arch riscv32 --chip generic --board ri5cyverilator --cc riscv32-unknown-elf-gcc --cflags="-c -O2 -ffunction-sections -march=rv32i_zicsr -mabi=ilp32" --ldflags="-Wl,-gc-sections" --user-libs="-lm"
