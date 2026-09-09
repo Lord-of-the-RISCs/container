@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM maven:3-eclipse-temurin-25-noble
 LABEL maintainer="Jean-Michel Gorius <jean-michel.gorius@irisa.fr>"
 LABEL description="SpecHLS demonstration environment"
 RUN apt-get -y update && \
@@ -49,7 +49,8 @@ RUN apt-get -y update && \
   bc \
   libexpat-dev \
   libglib2.0-dev \
-  libslirp-dev
+  libslirp-dev \
+  openjdk-25-jdk
 RUN useradd -m -s /bin/bash spechls-user && echo "spechls-user:spechls" | chpasswd && \
   adduser spechls-user sudo
 USER spechls-user
