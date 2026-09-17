@@ -1,0 +1,109 @@
+diff --git a/bundles/fr.irisa.cairn.gecos.model.speculative_hls/src/fr/irisa/cairn/gecos/model/hls/scheduler/specdse/SelectionManifestExporter.xtend b/bundles/fr.irisa.cairn.gecos.model.speculative_hls/src/fr/irisa/cairn/gecos/model/hls/scheduler/specdse/SelectionManifestExporter.xtend
+new file mode 100644
+index 000000000..e0e7f5a42
+--- /dev/null
++++ b/bundles/fr.irisa.cairn.gecos.model.speculative_hls/src/fr/irisa/cairn/gecos/model/hls/scheduler/specdse/SelectionManifestExporter.xtend
+@@ -0,0 +1,90 @@
++package fr.irisa.cairn.gecos.model.hls.scheduler.specdse
++
++import fr.irisa.cairn.gecos.model.hls.idg.IDGTopologicalSort
++import gecos.gecosproject.GecosProject
++import java.io.File
++import java.io.FileWriter
++import specHLS.GammaNode
++import specHLS.GammaSpeculation
++import specHLS.IDGSuperNode
++
++import static extension fr.irisa.cairn.gecos.model.idg.utils.GecosXtendIDGExtensions.*
++
++/**
++ * Writes Gecos' selected Gamma configuration in the JSON contract consumed by
++ * the native differential runner.  The exporter observes the post-scheduling
++ * annotations, rather than reports, so it records the configuration that Gecos
++ * actually applies.
++ */
++class SelectionManifestExporter {
++
++	static def void write(GecosProject project, Iterable<IDGSuperNode> sccs) {
++		val outputName = System.getenv("SPECHLS_SELECTION_MANIFEST")
++		if (outputName === null || outputName.empty)
++			return
++
++		val file = new File(outputName)
++		file.parentFile?.mkdirs
++		val gammas = sccs.flatMap [ scc |
++			new IDGTopologicalSort(scc).sortNodes
++			scc.selectNodes(GammaNode).toList
++		].sortBy[profilingId].toList
++		val json = new StringBuilder
++		json.append('''{
++  "schema_version": 1,
++  "flow": "gecos",
++  "task": "«escape(project.name)»",
++  "gammas": [''')
++		for (index : 0 ..< gammas.size) {
++			if (index != 0)
++				json.append(",")
++			json.append("\n    ")
++			appendGamma(json, gammas.get(index))
++		}
++		json.append("\n  ]\n}\n")
++		val writer = new FileWriter(file)
++		writer.write(json.toString)
++		writer.close
++	}
++
++	private static def void appendGamma(StringBuilder json, GammaNode gamma) {
++		val annotation = gamma.annotations.get("Spec") as GammaSpeculation
++		json.append('''{"gamma_id":"«escape(gamma.ident.toString)»","profiling_id":«gamma.profilingId»,
++"selected":«annotation !== null»''')
++		if (annotation !== null) {
++			val fastSelector = gamma.inputs.indexOf(gamma.speculativeUse)
++			json.append(''',"fast_selector":«fastSelector»,"condition_latency":«annotation.condLatency»,
++"resolve_stage":«annotation.resolvedStage»,"poison_speculation_ids":[''')
++			for (index : 0 ..< annotation.rollBackTargets.size) {
++				if (index != 0)
++					json.append(",")
++				json.append(annotation.rollBackTargets.get(index).profilingId)
++			}
++			json.append("],\"slow_paths\":[")
++			var firstPath = true
++			for (inputIndex : 1 ..< gamma.inputs.size) {
++				if (inputIndex != fastSelector) {
++					if (!firstPath)
++						json.append(",")
++					firstPath = false
++					json.append('''{"selector":«inputIndex»,"latency":«annotation.inputLatencies.get(inputIndex - 1)»,
++"rewind":0,"rbwe":true,"rollback_mu_ids":[],"rollback_array_ids":[],
++"rollback_gamma_ids":[''')
++					for (targetIndex : 0 ..< annotation.rollBackTargets.size) {
++						if (targetIndex != 0)
++							json.append(",")
++						json.append(annotation.rollBackTargets.get(targetIndex).profilingId)
++					}
++					json.append('''],"rollback_depth":«annotation.rollBackDepth»}''')
++				}
++			}
++			json.append("]")
++		}
++		json.append("}")
++	}
++
++	private static def String escape(String value) {
++		value.replace("\\", "\\\\").replace("\"", "\\\"")
++	}
++}
+diff --git a/bundles/fr.irisa.cairn.gecos.model.speculative_hls/src/fr/irisa/cairn/gecos/model/hls/scheduler/specdse/SpeculationExplorationStrategy.xtend b/bundles/fr.irisa.cairn.gecos.model.speculative_hls/src/fr/irisa/cairn/gecos/model/hls/scheduler/specdse/SpeculationExplorationStrategy.xtend
+index 8d173c5d2..9d0b5e6dd 100644
+--- a/bundles/fr.irisa.cairn.gecos.model.speculative_hls/src/fr/irisa/cairn/gecos/model/hls/scheduler/specdse/SpeculationExplorationStrategy.xtend
++++ b/bundles/fr.irisa.cairn.gecos.model.speculative_hls/src/fr/irisa/cairn/gecos/model/hls/scheduler/specdse/SpeculationExplorationStrategy.xtend
+@@ -250,7 +250,8 @@ abstract class SpeculationExplorationStrategy<T extends SpeculationExplorationSt
+ 					new SpeculationControlBuilder().apply(scc, sccConfigurations.get(scc).head, compilationOptions)
+ 				}
+ 			}
+ 			projects.add(project)
+ 		}
+ 
++		SelectionManifestExporter.write(project, sccs)
+ 		projects
+ 	}

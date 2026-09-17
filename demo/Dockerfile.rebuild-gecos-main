@@ -1,0 +1,37 @@
+# Rebuild the Java SpecHLS frontend from the public Gecos main branch while
+# retaining the CIRCT runtime prefix packaged by the published demo image.
+# The resulting image is intended for native-versus-Java exploration parity
+# tests, where the Java frontend and the native libraries must be explicit.
+FROM registry.gitlab.inria.fr/gecos/gecos-hls/spechls-demo:latest
+
+ARG GECOS_REPOSITORY=https://gitlab.inria.fr/gecos/gecos-hls.git
+ARG GECOS_REF=main
+
+COPY gecos-main-selection-manifest.patch /tmp/gecos-main-selection-manifest.patch
+
+USER root
+
+# Maven runs as the non-root image user.  The image does not include Gecos
+# sources, so clone the requested branch into an isolated build directory.
+RUN mkdir -p /work && chown spechls-user:spechls-user /work
+
+USER spechls-user
+WORKDIR /work
+
+# The main module's shade configuration writes the executable uber-JAR to
+# jar-gen. Its target JAR contains only the launcher classes.
+RUN set -eux; \
+    git clone --depth=1 --branch "$GECOS_REF" "$GECOS_REPOSITORY" gecos-hls; \
+    cd gecos-hls; \
+	git apply --recount /tmp/gecos-main-selection-manifest.patch; \
+    mvn -B install:install-file -Dfile=bundles/fr.irisa.cairn.gecos.model/libs/tommapping.jar -DgroupId=local.libs -DartifactId=tommapping -Dversion=1.0 -Dpackaging=jar; \
+    mvn -B install:install-file -Dfile=bundles/fr.irisa.cairn.gecos.model/libs/tom-runtime-full.jar -DgroupId=local.libs -DartifactId=tom_runtime_full -Dversion=1.0 -Dpackaging=jar; \
+    mvn -B install:install-file -Dfile=bundles/fr.irisa.cairn.gecos.model.speculative_hls/lib/javailp-1.2a.jar -DgroupId=local.libs -DartifactId=javailp -Dversion=1.0 -Dpackaging=jar; \
+    mvn -B install:install-file -Dfile=bundles/fr.irisa.cairn.gecos.model.speculative_hls/lib/junit-4.12.jar -DgroupId=local.libs -DartifactId=junit_4_12 -Dversion=1.0 -Dpackaging=jar; \
+    mvn -B install:install-file -Dfile=bundles/fr.irisa.cairn.gecos.model.speculative_hls/lib/commons-cli-1.5.0.jar -DgroupId=local.libs -DartifactId=commons_cli_1_5_0 -Dversion=1.0 -Dpackaging=jar; \
+    mvn -B -pl bundles/fr.irisa.cairn.gecos.model.speculative_hls.main -am -Dmaven.test.skip=true package; \
+    install -m 0644 jar-gen/SpecHLS.jar /home/spechls-user/SpecHLS.jar; \
+    test -s /home/spechls-user/SpecHLS.jar; \
+    java -jar /home/spechls-user/SpecHLS.jar --help >/dev/null 2>&1 || test $? -eq 1
+
+WORKDIR /home/spechls-user
